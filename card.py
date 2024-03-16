@@ -57,7 +57,7 @@ def create_tf_example(group, path):
     classes_text = []
     classes = []
 
-    labels = ['cardboard', 'glass', 'metal', 'paper', 'plastic']
+    # Load labels from the labelmap file
     with open(FLAGS.labelmap, 'r') as f:
         labels = [line.strip() for line in f.readlines()]
 
@@ -67,7 +67,12 @@ def create_tf_example(group, path):
         ymins.append(row['ymin'] / height)
         ymaxs.append(row['ymax'] / height)
         classes_text.append(row['class'].encode('utf8'))
-        classes.append(int(labels.index(row['class'])+1))
+
+        # Ensure that the label is in the labels list
+        if row['class'] in labels:
+            classes.append(int(labels.index(row['class']) + 1))
+        else:
+            raise ValueError("Label '{}' not found in labelmap file.".format(row['class']))
 
     tf_example = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
